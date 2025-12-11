@@ -1,0 +1,254 @@
+/* style.css - Styles for content script injected elements */
+
+/* Scan Button */
+.phishing-scan-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  margin: 4px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+  z-index: 1000;
+}
+
+.phishing-scan-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+  background: linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%);
+}
+
+.phishing-scan-button:active {
+  transform: translateY(0);
+}
+
+.phishing-scan-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.phishing-scan-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Spinner animation */
+.phishing-scan-button .spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Result Banner */
+.phishing-result-banner {
+  position: relative;
+  margin: 12px;
+  padding: 0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  animation: slideDown 0.3s ease;
+  z-index: 10000;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.phishing-result-banner.danger {
+  background: #fee2e2;
+  border: 2px solid #ef4444;
+}
+
+.phishing-result-banner.safe {
+  background: #d1fae5;
+  border: 2px solid #10b981;
+}
+
+.phishing-result-banner.error {
+  background: #fef3c7;
+  border: 2px solid #f59e0b;
+}
+
+/* Result Header */
+.phishing-result-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.phishing-result-icon {
+  font-size: 28px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.phishing-result-content {
+  flex: 1;
+}
+
+.phishing-result-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.phishing-result-confidence {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.phishing-result-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.1);
+  border: none;
+  border-radius: 50%;
+  font-size: 24px;
+  line-height: 1;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.phishing-result-close:hover {
+  background: rgba(0, 0, 0, 0.2);
+  color: #1f2937;
+  transform: scale(1.1);
+}
+
+/* Result Body */
+.phishing-result-body {
+  padding: 16px;
+}
+
+.phishing-result-recommendation {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #374151;
+}
+
+/* Indicators Details */
+.phishing-result-details {
+  margin-top: 12px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.phishing-result-details summary {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4b5563;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.phishing-result-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.phishing-result-details summary::before {
+  content: '▶';
+  display: inline-block;
+  transition: transform 0.2s;
+  font-size: 10px;
+}
+
+.phishing-result-details[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.phishing-result-details summary:hover {
+  color: #1f2937;
+}
+
+.phishing-result-indicators {
+  margin: 12px 0 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.phishing-result-indicators li {
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  background: white;
+  border-radius: 4px;
+  border-left: 3px solid #ef4444;
+  font-size: 13px;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.phishing-result-indicators li:last-child {
+  margin-bottom: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .phishing-result-banner {
+    margin: 8px;
+  }
+  
+  .phishing-result-header {
+    padding: 12px;
+  }
+  
+  .phishing-result-body {
+    padding: 12px;
+  }
+  
+  .phishing-result-title {
+    font-size: 14px;
+  }
+  
+  .phishing-result-icon {
+    font-size: 24px;
+  }
+}
+
+/* Make sure banner appears above email content */
+.phishing-result-banner {
+  position: relative !important;
+  z-index: 10000 !important;
+}
+
+/* Ensure button doesn't break email UI layout */
+.phishing-scan-button {
+  white-space: nowrap;
+  flex-shrink: 0;
+}

@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="container">
+    <h2>Realtime Dashboard</h2>
+    <p>Shows opened email analyses as they arrive (timestamp shows when it was analyzed).</p>
+
+    <table id="events">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>User</th>
+          <th>From</th>
+          <th>Subject</th>
+          <th>Score</th>
+          <th>Reasons</th>
+          <th>Link checks</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script type="module">
+    import { db } from "./firebase-config.js";
+    import { collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore.js";
+
+    const tbody = document.querySelector("#events tbody");
+    const q = query(collection(db, "emailEvents"), orderBy("timestamp", "desc"));
+
+    onSnapshot(q, (snap) => {
+      tbody.innerHTML = "";
+      snap.forEach(doc => {
+        const d = doc.data();
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${new Date(d.timestamp).toLocaleString()}</td>
+          <td>${d.user || "unknown"}</td>
+          <td>${d.from || ""}</td>
+          <td>${(d.subject||"").slice(0,80)}</td>
+          <td>${d.score ?? "N/A"}</td>
+          <td>${(d.reasons || []).map(r => `<div>${r}</div>`).join("")}</td>
+          <td>${(d.link_checks || []).map(l => `<div>${l}</div>`).join("")}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    });
+  </script>
+</body>
+</html>
