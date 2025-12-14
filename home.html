@@ -1,0 +1,223 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Shupra Protects - Home</title>
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    /* User info bar styles */
+    .user-bar {
+      background: #f0f0f0;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    
+    .user-name {
+      font-weight: 600;
+      color: #333;
+      font-size: 18px;
+    }
+    
+    .user-email {
+      font-size: 14px;
+      color: #666;
+    }
+    
+    .logout-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      z-index: 1000;
+    }
+    
+    .logout-btn:hover {
+      background: #c0392b;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    
+    /* Dashboard section styles */
+    .dashboard-section {
+      margin-top: 40px;
+      padding-top: 30px;
+      border-top: 2px solid #e0e0e0;
+    }
+    
+    .dashboard-section h2 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+    
+    #events {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    #events th {
+      background: #667eea;
+      color: white;
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+    }
+    
+    #events td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    
+    #events tbody tr:hover {
+      background: #f5f5f5;
+    }
+    
+    #events tbody tr:nth-child(even) {
+      background: #fafafa;
+    }
+    
+    #events tbody tr:nth-child(even):hover {
+      background: #f0f0f0;
+    }
+    
+    .no-data {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- User Info Bar -->
+    <div class="user-bar">
+      <div class="user-name" id="user-name">Loading...</div>
+      <div class="user-email" id="user-email"></div>
+    </div>
+    
+    <!-- Logout Button (Fixed at bottom right) -->
+    <button class="logout-btn" onclick="logout()">Logout</button>
+    
+    <!-- Main Content -->
+    <h1>Shupra Protects</h1>
+    <p>Install the extension to analyze opened emails and store analysis in a realtime dashboard (consent required).</p>
+
+    <!-- Replace with your Chrome Web Store URL after publishing -->
+    <a id="download" class="btn" href="https://chrome.google.com/webstore/detail/YOUR-EXTENSION-ID" target="_blank">Install from Chrome Web Store</a>
+
+    <hr style="margin: 30px 0;" />
+    
+    <h3>Test/install instructions (dev)</h3>
+    <ol>
+      <li>Serve this folder (see README steps below).</li>
+      <li>In Chrome: go to chrome://extensions → Developer mode → "Load unpacked" → choose the /extension folder from this project.</li>
+      <li>Open Gmail, open an email, then open the extension popup and enable consent.</li>
+    </ol>
+
+    <!-- Dashboard Section -->
+    <div class="dashboard-section">
+      <h2>📊 Real-time Dashboard</h2>
+      <p>Shows opened email analyses as they arrive (timestamp shows when it was analyzed).</p>
+
+      <table id="events">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>User</th>
+            <th>From</th>
+            <th>Subject</th>
+            <th>Score</th>
+            <th>Reasons</th>
+            <th>Link checks</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="7" class="no-data">No email analyses yet. Install the extension and open some emails!</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script type="module">
+    import { auth, db, onAuthStateChanged, signOut, doc, getDoc } from './public/firebase-config.js';
+    import { collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // Check if user is logged in and display their info
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        // Get user's name from Firestore
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            document.getElementById('user-name').textContent = `Welcome, ${userData.name}!`;
+            document.getElementById('user-email').textContent = user.email;
+          } else {
+            // Fallback if no name is stored
+            document.getElementById('user-name').textContent = `Welcome!`;
+            document.getElementById('user-email').textContent = user.email;
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+          document.getElementById('user-name').textContent = `Welcome!`;
+          document.getElementById('user-email').textContent = user.email;
+        }
+        console.log('Logged in user:', user);
+      } else {
+        // Redirect to login if not authenticated
+        window.location.href = 'index.html';
+      }
+    });
+
+    // Logout function
+    window.logout = async () => {
+      try {
+        await signOut(auth);
+        window.location.href = 'index.html';
+      } catch (error) {
+        console.error('Error signing out:', error);
+        alert('Error logging out. Please try again.');
+      }
+    };
+
+    // Real-time dashboard - listen to email events
+    const tbody = document.querySelector("#events tbody");
+    const q = query(collection(db, "emailEvents"), orderBy("timestamp", "desc"));
+
+    onSnapshot(q, (snap) => {
+      if (snap.empty) {
+        tbody.innerHTML = '<tr><td colspan="7" class="no-data">No email analyses yet. Install the extension and open some emails!</td></tr>';
+        return;
+      }
+      
+      tbody.innerHTML = "";
+      snap.forEach(doc => {
+        const d = doc.data();
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${new Date(d.timestamp).toLocaleString()}</td>
+          <td>${d.user || "unknown"}</td>
+          <td>${d.from || ""}</td>
+          <td>${(d.subject||"").slice(0,80)}</td>
+          <td>${d.score ?? "N/A"}</td>
+          <td>${(d.reasons || []).map(r => `<div>${r}</div>`).join("")}</td>
+          <td>${(d.link_checks || []).map(l => `<div>${l}</div>`).join("")}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    });
+  </script>
+</body>
+</html>
